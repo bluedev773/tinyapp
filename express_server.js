@@ -2,11 +2,14 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session')
 const bcrypt = require('bcryptjs');
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}));
 
 app.set("view engine", "ejs");
 
@@ -49,7 +52,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const currentID = req.cookies["user_id"];
+  const currentID = req.session.user_id;
   const currentUser = users[currentID];
   const userUrls = getUrlsById(currentID);
   const templateVars = {
@@ -60,7 +63,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const currentID = req.cookies["user_id"];
+  const currentID = req.session.user_id;
   const currentUser = users[currentID];
   const templateVars = {
     user: currentUser
@@ -73,7 +76,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const currentID = req.cookies["user_id"];
+  const currentID = req.session.user_id;
   const currentUser = users[currentID];
   const templateVars = {
     user: currentUser
@@ -82,7 +85,7 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const currentID = req.cookies["user_id"];
+  const currentID = req.session.user_id;
   const currentUser = users[currentID];
   const templateVars = {
     user: currentUser
@@ -92,7 +95,7 @@ app.get("/login", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL
-  const currentID = req.cookies["user_id"];
+  const currentID = req.session.user_id;
   const currentUser = users[currentID];
   const usersURLs = getUrlsById(currentID);
   if(shortURL in usersURLs) {
@@ -119,7 +122,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const currentID = req.cookies["user_id"];
+  const currentID = req.session.user_id;
   const currentUser = users[currentID];
   if(!currentUser) {
     res.send("Error: You need to be logged in to create a new URL.");
@@ -137,7 +140,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  const currentID = req.cookies["user_id"];
+  const currentID = req.session.user_id;
   const shortURL = req.params.shortURL;
   const longURL = req.body.longURL; 
   const usersURLs = getUrlsById(currentID);
@@ -154,7 +157,7 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const currentID = req.cookies["user_id"];
+  const currentID = req.session.user_id;
   const shortURL = req.params.shortURL;
   const usersURLs = getUrlsById(currentID);
   if(shortURL in usersURLs) {
@@ -176,13 +179,13 @@ app.post("/login", (req, res) => {
     res.send("Incorrect password");
   } else {
     const id = idByEmail(userEmail);
-    res.cookie("user_id", id);
+    req.session.user_id = id;
     res.redirect("/urls");
   }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null
   res.redirect("/urls");
 });
 
@@ -203,7 +206,7 @@ app.post("/register", (req, res) => {
         email: userEmail,
         password: hashedPassword
       }
-      res.cookie("user_id", userID);
+      req.session.user_id = userID;
       res.redirect("/urls");
   }
   console.log(users);
