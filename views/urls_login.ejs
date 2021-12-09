@@ -7,7 +7,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 
-    <title>Register - TinyApp</title>
+    <title>Login - TinyApp</title>
   </head>
 
   <body>
@@ -15,8 +15,8 @@
     <%- include('partials/_header.ejs') %>
 
     <main style="margin: 1em;">
-      <h3>Register New User</h3>
-      <form action="/register" method="POST">
+      <h3>Login</h3>
+      <form action="/login" method="POST">
         <div class="form-group">
           <label for="email">Email</label>
           <input class="form-control" type="email" name="email" style="width: 300px;">
@@ -25,7 +25,7 @@
           <label for="password">Password</label>
           <input class="form-control" type="password" name="password" style="width: 300px;">
         </div>
-          <button type="submit" class="btn btn-primary">Register</button>
+          <button type="submit" class="btn btn-primary">Login</button>
       </form>
     </main>
 

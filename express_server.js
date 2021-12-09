@@ -57,7 +57,7 @@ app.get("/urls/new", (req, res) => {
   const currentID = req.cookies["user_id"];
   const currentUser = users[currentID];
   const templateVars = {
-    username: currentUser
+    user: currentUser
   };
   res.render("urls_new", templateVars);
 });
@@ -69,6 +69,15 @@ app.get("/register", (req, res) => {
     user: currentUser
   };
   res.render("urls_register", templateVars);
+});
+
+app.get("/login", (req, res) => {
+  const currentID = req.cookies["user_id"];
+  const currentUser = users[currentID];
+  const templateVars = {
+    user: currentUser
+  };
+  res.render("urls_login", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -109,13 +118,23 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const userName = req.body.username;
-  res.cookie("username", userName);
-  res.redirect("/urls");
+  const userEmail = req.body.email;
+  const userPassword = req.body.password;
+  if(emailLookup(userEmail) !== true) {
+    res.status(403);
+    res.send("User with this email not found");
+  } else if (userPassword !== passByEmail(userEmail)) {
+    res.status(403);
+    res.send("Incorrect password");
+  } else {
+    const id = idByEmail(userEmail);
+    res.cookie("user_id", id);
+    res.redirect("/urls");
+  }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
@@ -163,6 +182,24 @@ const emailLookup = function (email) {
   for(const key in users) {
     if(email === users[key].email) {
       return true;
+    }
+  }
+}
+
+//return password of given email
+const passByEmail = function (email) {
+  for(const key in users) {
+    if(email === users[key].email) {
+      return users[key].password;
+    }
+  }
+}
+
+//return id of given email
+const idByEmail = function (email) {
+  for(const key in users) {
+    if(email === users[key].email) {
+      return users[key].id;
     }
   }
 }
