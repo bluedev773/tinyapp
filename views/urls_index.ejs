@@ -11,7 +11,8 @@
 <body>
   <%- include('partials/_header.ejs') %>
   <main style="margin: 1em;">
-    <h3>My URLs</h3>
+    <% if(user) { %>
+      <h3>My URLs</h3>
     <table class="table">
       <thead>
         <tr>
@@ -25,7 +26,7 @@
         <% for(let url in urls) { %>
             <tr>
               <td><%= url %></td>
-              <td><%= urls[url] %></td>
+              <td><%= urls[url].longURL %></td>
               <td>
                 <form method="POST" action="/urls/<%= url %>/delete">
                 <button type="submit" class="btn btn-danger">Delete</button>
@@ -40,6 +41,9 @@
         <% } %>
       </tbody>
     </table>
+    <% } else { %>
+      <h5>Please login to view your URLs</h5>
+      <% } %>
 
     
   </main>
