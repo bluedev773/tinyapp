@@ -9,21 +9,26 @@ app.use(cookieParser());
 
 app.set("view engine", "ejs");
 
-//generate string of 6 random alphanumeric characters
-function generateRandomString() {
-  var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-  for (var i = 0; i < 5; i++)
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-  return text;
-}
-
+//--------------------Data----------------------------------------------------
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
+//----------------------------------Route Handlers----------------------------------
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -38,33 +43,42 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  const currentID = req.cookies["user_id"];
+  const currentUser = users[currentID];
+  console.log(currentUser);
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    user: currentUser
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
+  const currentID = req.cookies["user_id"];
+  const currentUser = users[currentID];
   const templateVars = {
-    username: req.cookies["username"]
+    username: currentUser
   };
   res.render("urls_new", templateVars);
 });
 
 app.get("/register", (req, res) => {
+  const currentID = req.cookies["user_id"];
+  const currentUser = users[currentID];
   const templateVars = {
-    username: req.cookies["username"]
+    user: currentUser
   };
   res.render("urls_register", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL
+  const currentID = req.cookies["user_id"];
+  const currentUser = users[currentID];
   const templateVars = {
     shortURL: shortURL,
     longURL: urlDatabase[shortURL],
-    username: req.cookies["username"]
+    user: currentUser
   }
   res.render("urls_show", templateVars);
 });
@@ -86,13 +100,13 @@ app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/`);
-})
+});
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect(`/urls/`);
-})
+});
 
 app.post("/login", (req, res) => {
   const userName = req.body.username;
@@ -103,8 +117,52 @@ app.post("/login", (req, res) => {
 app.post("/logout", (req, res) => {
   res.clearCookie("username");
   res.redirect("/urls");
-})
+});
+
+app.post("/register", (req, res) => {
+  const userID = generateRandomString();
+  const userEmail = req.body.email;
+  const userPassword = req.body.password;
+  if(userEmail === '' || userPassword === '') {
+    res.status(400);
+    res.send('email or password empty');
+  } else if (emailLookup(userEmail) === true) {
+      res.status(400);
+      res.send('User exists already');
+  } else {
+      users[userID] = {
+        id: userID,
+        email: userEmail,
+        password: userPassword
+      }
+      res.cookie("user_id", userID);
+      res.redirect("/urls");
+  }
+  console.log(users);
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+//-----------------------Helper functions--------------------------
+
+//generate string of 6 random alphanumeric characters
+const generateRandomString = function() {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < 5; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
+}
+
+//return true if email exists in user object
+const emailLookup = function (email) {
+  for(const key in users) {
+    if(email === users[key].email) {
+      return true;
+    }
+  }
+}
